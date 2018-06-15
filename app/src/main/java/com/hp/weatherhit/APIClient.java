@@ -14,7 +14,8 @@ public class APIClient {
         @GET("/data/2.5//weather")
         Call<WeatherData> getLocationWeather(
                 @Query("q") String location,
-                @Query("appId") String appId);
+                @Query("appId") String appId,
+                @Query("units") String unitType);
     }
 
     static Retrofit getClient() {
