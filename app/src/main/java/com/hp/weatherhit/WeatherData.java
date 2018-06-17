@@ -213,6 +213,14 @@ class Main {
         return temp;
     }
 
+    public int getTempInCelsius() {
+        return changeTempToCelsius(temp);
+    }
+
+    public int getTempInFahrenheit() {
+        return changeTempToFahrenheit(temp);
+    }
+
     public void setTemp(Double temp) {
         this.temp = temp;
     }
@@ -237,6 +245,22 @@ class Main {
         return tempMin;
     }
 
+    public int getTempMinCelsius() {
+        return changeTempToCelsius(tempMin);
+    }
+
+    public int getTempMinInFahrenheit() {
+        return changeTempToFahrenheit(tempMin);
+    }
+
+    public int getTempMaxCelsius() {
+        return changeTempToCelsius(tempMax);
+    }
+
+    public int getTempMaxInFahrenheit() {
+        return changeTempToFahrenheit(tempMax);
+    }
+
     public void setTempMin(Double tempMin) {
         this.tempMin = tempMin;
     }
@@ -247,6 +271,14 @@ class Main {
 
     public void setTempMax(Double tempMax) {
         this.tempMax = tempMax;
+    }
+
+    private int changeTempToCelsius(Double value) {
+        return (int) (temp - 273.15);
+    }
+
+    public int changeTempToFahrenheit(Double value) {
+        return (int) (((value - 273) * 9 / 5) + 32);
     }
 
 }

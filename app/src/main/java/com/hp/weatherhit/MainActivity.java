@@ -2,7 +2,6 @@ package com.hp.weatherhit;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -22,26 +21,22 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    // TODO Private or public?
-    // TODO group by type (views, APIs,...)
-    WeatherData weatherData;
-    String unitType = "imperial";
-    Boolean isFreedomUnit = true;
-    TextView temp;
-    TextView temp_hi;
-    TextView temp_low;
-    Button button;
-    EditText editText;
-    TextView day_label;
-    TextView night_label;
-    ImageView weather_image;
-    TextView desc;
-    Switch unit_switch;
-    String currentLang = "en";
-    String searchLocation;
-    Toolbar myToolbar;
-    RequestWeatherData requestForWeatherData;
-
+    public WeatherData weatherData;
+    private Boolean isFreedomUnit = true;
+    private TextView temp;
+    private TextView temp_hi;
+    private TextView temp_low;
+    private TextView day_label;
+    private TextView night_label;
+    private TextView desc;
+    private Button button;
+    private EditText editText;
+    private ImageView weather_image;
+    private Switch unit_switch;
+    private String searchLocation;
+    private Toolbar myToolbar;
+    public RequestWeatherData request = new RequestWeatherData();
+    private Language language = new Language();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -64,64 +59,11 @@ public class MainActivity extends AppCompatActivity {
                 if (searchLocation.matches("")) {
                     Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
                 } else {
-                    getWeatherData(searchLocation, getLanguage());
+                    getWeatherData(searchLocation, language.currentLang);
                 }
                 closeKeyboard();
             }
         });
-    }
-
-    private void getWeatherData(String searchLocation, String currentLang) {
-        requestForWeatherData.requestForWeatherData(searchLocation, currentLang,
-                new RetrofitCallback() {
-                    @Override
-                    public void onSuccess(WeatherData response) {
-                        displayWeatherData(response);
-                    }
-
-                    @Override
-                    public void onFailure(String error) {
-                        Log.e("getWeatherData", error);
-                    }
-                });
-    }
-
-    private void closeKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-    }
-
-    private void setSwitchUnitType(boolean isChecked) {
-        boolean isSearchLocationEmpty = searchLocation.matches("");
-        if (isChecked) {
-            isFreedomUnit = false;
-        } else {
-            isFreedomUnit = true;
-        }
-        if (!isSearchLocationEmpty) {
-            setDegreeMeasurement(weatherData.getMain().getTemp(),
-                    weatherData.getMain().getTempMax(),
-                    weatherData.getMain().getTempMin());
-        }
-    }
-
-    private void setLabelsVisibility(int gone) {
-        day_label.setVisibility(gone);
-        night_label.setVisibility(gone);
-    }
-
-    private void findViews() {
-        temp = findViewById(R.id.temp_text);
-        temp_hi = findViewById(R.id.temp_hi_text);
-        temp_low = findViewById(R.id.temp_low_text);
-        editText = findViewById(R.id.user_input);
-        button = findViewById(R.id.button);
-        day_label = findViewById(R.id.temp_hi_label);
-        night_label = findViewById(R.id.temp_low_label);
-        weather_image = findViewById(R.id.weather_image);
-        desc = findViewById(R.id.description);
-        unit_switch = findViewById(R.id.unit_switch);
-        myToolbar = findViewById(R.id.my_toolbar);
     }
 
     @Override
@@ -144,27 +86,57 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // TODO Is language somthing that this activity should own?
-    private String getLanguage() {
-        SharedPreferences sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
-        currentLang = sharedPreferences.getString("lang", null);
-        if (currentLang.equals(null)) {
-            return "en";
+    private void setSwitchUnitType(boolean isChecked) {
+        boolean isSearchLocationEmpty = searchLocation.matches("");
+        if (isChecked) {
+            isFreedomUnit = false;
+        } else {
+            isFreedomUnit = true;
         }
-        return currentLang;
+        if (!isSearchLocationEmpty) {
+            setWeatherDataWithUnit(weatherData);
+        }
+    }
+
+    private void setLabelsVisibility(int gone) {
+        day_label.setVisibility(gone);
+        night_label.setVisibility(gone);
+    }
+
+    private void findViews() {
+        temp = findViewById(R.id.temp_text);
+        temp_hi = findViewById(R.id.temp_hi_text);
+        temp_low = findViewById(R.id.temp_low_text);
+        editText = findViewById(R.id.user_input);
+        button = findViewById(R.id.button);
+        day_label = findViewById(R.id.temp_hi_label);
+        night_label = findViewById(R.id.temp_low_label);
+        weather_image = findViewById(R.id.weather_image);
+        desc = findViewById(R.id.description);
+        unit_switch = findViewById(R.id.unit_switch);
+        myToolbar = findViewById(R.id.my_toolbar);
     }
 
     private void displayWeatherData(WeatherData weatherData) {
         setLabelsVisibility(View.VISIBLE);
 
-        setDegreeMeasurement(weatherData.getMain().getTemp(),
-                weatherData.getMain().getTempMax(),
-                weatherData.getMain().getTempMin());
-
         desc.setText(weatherData.getWeather().get(0).getDescription());
         setImage(weatherData.getWeather().get(0).getMain(), weather_image);
+
+        setWeatherDataWithUnit(weatherData);
     }
 
+    private void setWeatherDataWithUnit(WeatherData weatherData) {
+        if (isFreedomUnit) {
+            temp.setText(weatherData.getMain().getTempInFahrenheit() + "°F");
+            temp_hi.setText(weatherData.getMain().getTempMaxInFahrenheit() + "°F");
+            temp_low.setText(weatherData.getMain().getTempMinInFahrenheit() + "°F");
+        } else {
+            temp.setText(weatherData.getMain().getTempInCelsius() + "°C");
+            temp_hi.setText(weatherData.getMain().getTempMaxCelsius() + "°C");
+            temp_low.setText(weatherData.getMain().getTempMinCelsius() + "°C");
+        }
+    }
 
     private void setImage(String weatherData, ImageView weather_image) {
         switch (weatherData.toLowerCase()) {
@@ -180,37 +152,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setDegreeMeasurement(Double tempValue, Double tempMax, Double tempMin) {
-        // TODO Unit type should be injected, also, it shouldn't be a string (what if I pass a string that says "Imperial"?)
-        // If you map it to boolean it would make more sense, but then you'll have to sort this: https://medium.com/@amlcurran/clean-code-the-curse-of-a-boolean-parameter-c237a830b7a3
-        if (unitType == "imperial") {
-            temp.setText(kelvinToFahrenheit(tempValue) + "°F");
-            temp_hi.setText(kelvinToFahrenheit(tempMax) + "°F");
-            temp_low.setText(kelvinToFahrenheit(tempMin) + "°F");
-        } else {
-            temp.setText(kelvinToCelsius(tempValue) + "°C");
-            temp_hi.setText(kelvinToCelsius(tempMax) + "°C");
-            temp_low.setText(kelvinToCelsius(tempMin) + "°C");
-        }
-    }
+    private void getWeatherData(String searchLocation, String currentLang) {
+        request.requestForWeatherData(searchLocation, currentLang,
+                new RetrofitCallback() {
+                    @Override
+                    public void onSuccess(WeatherData response) {
+                        if (response != null) {
+                            displayWeatherData(response);
+                        }
+                    }
 
-    // TODO is this what the activity shold be doing?
-    public static int kelvinToCelsius(double kelvinValue) {
-        return (int) (kelvinValue - 273.15);
-    }
-
-    public static int kelvinToFahrenheit(double kelvinValue) {
-        return (int) (((kelvinValue - 273) * 9 / 5) + 32);
+                    @Override
+                    public void onFailure(int errorCode, String error) {
+                        Log.e("getWeatherData", error);
+                    }
+                });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        SharedPreferences sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
-        String prefLang = sharedPreferences.getString("lang", null);
-        if (!prefLang.equals(currentLang)) {
-            getWeatherData(searchLocation, getLanguage());
+        if (language.langIsNew(getApplicationContext())) {
+            getWeatherData(searchLocation, language.currentLang);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (language.langIsNew(getApplicationContext())) {
+            getWeatherData(searchLocation, language.currentLang);
+        }
+    }
+
+    private void closeKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
         }
     }
 }
-
