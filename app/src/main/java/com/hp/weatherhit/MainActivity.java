@@ -23,7 +23,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     APIClient.APIInterface apiInterface;
     WeatherData weatherData;
-    String unitType = "imperial";s
+    String unitType = "imperial";
     TextView temp;
     TextView temp_hi;
     TextView temp_low;
@@ -59,12 +59,17 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     unitType = "metric";
                     if (!editText.getText().toString().matches("")) {
-                        requestForWeatherData(editText.getText().toString());
+
+                        setDegreeMeasurement(weatherData.getMain().getTemp(),
+                                weatherData.getMain().getTempMax(),
+                                weatherData.getMain().getTempMin());
                     }
                 } else {
                     unitType = "imperial";
                     if (!editText.getText().toString().matches("")) {
-                        requestForWeatherData(editText.getText().toString());
+                        setDegreeMeasurement(weatherData.getMain().getTemp(),
+                                weatherData.getMain().getTempMax(),
+                                weatherData.getMain().getTempMin());
                     }
                 }
             }
