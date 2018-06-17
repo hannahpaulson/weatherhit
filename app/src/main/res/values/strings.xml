@@ -4,5 +4,5 @@
     <string name="day">Day</string>
     <string name="night">Night</string>
     <string name="action_languages">Language</string>
-
+    <string name="title_activity_settings">Settings</string>
 </resources>

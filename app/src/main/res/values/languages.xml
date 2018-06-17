@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="languages">
+        <item>English</item>
+        <item>Catalan</item>
+        <item>Spanish</item>
+        <item>French</item>
+        <item>Italian</item>
+    </string-array>
+
+    <string-array name="languageAlias">
+        <item>"en"</item>
+        <item>"ca"</item>
+        <item>"es"</item>
+        <item>"fr"</item>
+        <item>"it"</item>
+    </string-array>
+</resources>
