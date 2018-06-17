@@ -10,32 +10,52 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static com.hp.weatherhit.R.drawable.ic_wi_cloudy;
+import static java.time.LocalDateTime.*;
 
 public class MainActivity extends AppCompatActivity {
     APIClient.APIInterface apiInterface;
     WeatherData weatherData;
     String unitType = "imperial";
 
+    TextView temp;
+    TextView temp_hi;
+    TextView temp_low;
+    Button button;
+    EditText editText;
+    TextView day_label;
+    TextView night_label;
+    ImageView weather_image;
+    TextView desc;
+
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final TextView temp = findViewById(R.id.temp_text);
-        final TextView temp_hi = findViewById(R.id.temp_hi_text);
-        final TextView temp_low = findViewById(R.id.temp_low_text);
-        final EditText editText = findViewById(R.id.user_input);
-        final Button button = findViewById(R.id.button);
-        final TextView day_label = findViewById(R.id.temp_hi_label);
-        final TextView night_label = findViewById(R.id.temp_low_label);
+        temp = findViewById(R.id.temp_text);
+        temp_hi = findViewById(R.id.temp_hi_text);
+        temp_low = findViewById(R.id.temp_low_text);
+        editText = findViewById(R.id.user_input);
+        button = findViewById(R.id.button);
+        day_label = findViewById(R.id.temp_hi_label);
+        night_label = findViewById(R.id.temp_low_label);
+        weather_image = findViewById(R.id.weather_image);
+        desc = findViewById(R.id.description);
         day_label.setVisibility(View.GONE);
         night_label.setVisibility(View.GONE);
 
@@ -46,12 +66,12 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     unitType = "metric";
                     if (!editText.getText().toString().matches("")) {
-                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label);
+                        requestForWeatherData(editText.getText().toString());
                     }
                 } else {
                     unitType = "imperial";
                     if (!editText.getText().toString().matches("")) {
-                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label);
+                        requestForWeatherData(editText.getText().toString());
                     }
                 }
             }
@@ -63,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 if (editText.getText().toString().matches("")) {
                     Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
                 } else {
-                    requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label);
+                    requestForWeatherData(editText.getText().toString());
                 }
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
@@ -71,19 +91,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void requestForWeatherData(final TextView temp, final TextView temp_hi, final TextView temp_low, final String location, final TextView dayLabel, final TextView night_label) {
+    private void requestForWeatherData(final String location) {
         apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
         Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d", unitType);
         call.enqueue(new Callback<WeatherData>() {
             @Override
             public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
-                dayLabel.setVisibility(View.VISIBLE);
+
+                day_label.setVisibility(View.VISIBLE);
                 night_label.setVisibility(View.VISIBLE);
                 weatherData = response.body();
                 String degreeType = getDegreeMeasurement();
                 temp.setText(trimDecimal(weatherData.getMain().getTemp().toString()) + degreeType);
                 temp_hi.setText(trimDecimal(weatherData.getMain().getTempMax().toString()) + degreeType);
                 temp_low.setText(trimDecimal(weatherData.getMain().getTempMin().toString()) + degreeType);
+                desc.setText(weatherData.getWeather().get(0).getDescription());
+                setImage(weatherData.getWeather().get(0).getMain(), weather_image);
             }
 
             @Override
@@ -92,6 +115,20 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("RequestWeatherData", "Couldn't make the call");
             }
         });
+    }
+
+    private void setImage(String weatherData, ImageView weather_image) {
+        switch (weatherData.toLowerCase()) {
+            case "clouds":
+                weather_image.setImageResource(R.drawable.ic_wi_cloudy);
+                break;
+            case "clear":
+                weather_image.setImageResource(R.drawable.ic_wi_day_sunny);
+                break;
+            default:
+                weather_image.setImageResource(R.drawable.ic_wi_na);
+                break;
+        }
     }
 
     private String getDegreeMeasurement() {
