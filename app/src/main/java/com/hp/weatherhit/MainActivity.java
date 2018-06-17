@@ -1,8 +1,8 @@
 package com.hp.weatherhit;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -28,7 +28,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     APIClient.APIInterface apiInterface;
     WeatherData weatherData;
-    String unitType = "imperial";
+    String unitType;
     TextView temp;
     TextView temp_hi;
     TextView temp_low;
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
+
 
         unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -120,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void requestForWeatherData(final String location) {
+        setUnitType();
         apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
         Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d");
         call.enqueue(new Callback<WeatherData>() {
@@ -134,6 +136,14 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("RequestWeatherData", "Couldn't make the call");
             }
         });
+    }
+
+    private void getLanguage() {
+        SharedPreferences sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        unitType = sharedPreferences.getString("unit", null);
+        if (unitType == null) {
+            unitType = "metric";
+        }
     }
 
     private void displayWeatherData(Response<WeatherData> response) {
@@ -164,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private void setDegreeMeasurement(Double tempValue, Double tempMax, Double tempMin) {
         if (unitType == "imperial") {
             temp.setText(kelvinToFahrenheit(tempValue) + "°F");

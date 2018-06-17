@@ -6,7 +6,7 @@
         android:entryValues="@array/languageAlias"/>
 
     <ListPreference
-        android:key="language_preference"
+        android:key="unit_preference"
         android:title="Unit"
         android:entries="@array/unit"
         android:entryValues="@array/unitAlias"/>
