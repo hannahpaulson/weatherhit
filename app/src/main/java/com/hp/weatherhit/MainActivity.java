@@ -93,20 +93,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestForWeatherData(final String location) {
         apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
-        Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d", unitType);
+        Call<WeatherData> call = apiInterface.getLocationWeather(location, "", unitType);
         call.enqueue(new Callback<WeatherData>() {
             @Override
             public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
-
-                day_label.setVisibility(View.VISIBLE);
-                night_label.setVisibility(View.VISIBLE);
-                weatherData = response.body();
-                String degreeType = getDegreeMeasurement();
-                temp.setText(trimDecimal(weatherData.getMain().getTemp().toString()) + degreeType);
-                temp_hi.setText(trimDecimal(weatherData.getMain().getTempMax().toString()) + degreeType);
-                temp_low.setText(trimDecimal(weatherData.getMain().getTempMin().toString()) + degreeType);
-                desc.setText(weatherData.getWeather().get(0).getDescription());
-                setImage(weatherData.getWeather().get(0).getMain(), weather_image);
+                displayWeatherData(response);
             }
 
             @Override
@@ -115,6 +106,19 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("RequestWeatherData", "Couldn't make the call");
             }
         });
+    }
+
+    private void displayWeatherData(Response<WeatherData> response) {
+        day_label.setVisibility(View.VISIBLE);
+        night_label.setVisibility(View.VISIBLE);
+        weatherData = response.body();
+
+        String degreeType = getDegreeMeasurement();
+        temp.setText(trimDecimal(weatherData.getMain().getTemp().toString()) + degreeType);
+        temp_hi.setText(trimDecimal(weatherData.getMain().getTempMax().toString()) + degreeType);
+        temp_low.setText(trimDecimal(weatherData.getMain().getTempMin().toString()) + degreeType);
+        desc.setText(weatherData.getWeather().get(0).getDescription());
+        setImage(weatherData.getWeather().get(0).getMain(), weather_image);
     }
 
     private void setImage(String weatherData, ImageView weather_image) {
