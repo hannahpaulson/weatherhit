@@ -23,7 +23,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     APIClient.APIInterface apiInterface;
     WeatherData weatherData;
-    Boolean isFreedomUnits = true;
+    String unitType = "imperial";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,15 +43,15 @@ public class MainActivity extends AppCompatActivity {
 
         unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (editText.getText().toString().matches("")) {
-                    Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
+                if (isChecked) {
+                    unitType = "metric";
+                    if (!editText.getText().toString().matches("")) {
+                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label);
+                    }
                 } else {
-                    if (isChecked) {
-                        isFreedomUnits = false;
-                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label, "metric");
-                    } else {
-                        isFreedomUnits = true;
-                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label, "imperial");
+                    unitType = "imperial";
+                    if (!editText.getText().toString().matches("")) {
+                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label);
                     }
                 }
             }
@@ -63,12 +63,7 @@ public class MainActivity extends AppCompatActivity {
                 if (editText.getText().toString().matches("")) {
                     Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
                 } else {
-                    if(isFreedomUnits) {
-                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label, "imperial");
-                    }else {
-                        isFreedomUnits = false;
-                        requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label, "metric");
-                    }
+                    requestForWeatherData(temp, temp_hi, temp_low, editText.getText().toString(), day_label, night_label);
                 }
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
@@ -76,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void requestForWeatherData(final TextView temp, final TextView temp_hi, final TextView temp_low, final String location, final TextView dayLabel, final TextView night_label, String unitType) {
+    private void requestForWeatherData(final TextView temp, final TextView temp_hi, final TextView temp_low, final String location, final TextView dayLabel, final TextView night_label) {
         apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
         Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d", unitType);
         call.enqueue(new Callback<WeatherData>() {
@@ -100,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getDegreeMeasurement() {
-        if (isFreedomUnits) {
+        if (unitType == "imperial") {
             return "°F";
         } else {
             return "°C";
