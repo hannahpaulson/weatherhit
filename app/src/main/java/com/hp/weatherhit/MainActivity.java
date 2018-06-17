@@ -37,18 +37,28 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar myToolbar;
     public RequestWeatherData request = new RequestWeatherData();
     private Language language = new Language();
+    private Context context;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = getApplicationContext();
         findViews();
         setLabelsVisibility(View.GONE);
         setSupportActionBar(myToolbar);
 
         unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                setSwitchUnitType(isChecked);
+                boolean isSearchLocationEmpty = searchLocation.matches("") || searchLocation.equals(null);
+                if (isChecked) {
+                    isFreedomUnit = false;
+                } else {
+                    isFreedomUnit = true;
+                }
+                if (!isSearchLocationEmpty) {
+                    setWeatherDataWithUnit(weatherData);
+                }
             }
         });
 
@@ -57,9 +67,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 searchLocation = editText.getText().toString();
                 if (searchLocation.matches("")) {
-                    Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Pls Type a location", Toast.LENGTH_SHORT).show();
                 } else {
-                    getWeatherData(searchLocation, language.currentLang);
+                    getWeatherData(searchLocation, language.getCurrentLang(context));
                 }
                 closeKeyboard();
             }
@@ -83,18 +93,6 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
 
-        }
-    }
-
-    private void setSwitchUnitType(boolean isChecked) {
-        boolean isSearchLocationEmpty = searchLocation.matches("");
-        if (isChecked) {
-            isFreedomUnit = false;
-        } else {
-            isFreedomUnit = true;
-        }
-        if (!isSearchLocationEmpty) {
-            setWeatherDataWithUnit(weatherData);
         }
     }
 
@@ -158,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(WeatherData response) {
                         if (response != null) {
+                            weatherData = response;
                             displayWeatherData(response);
                         }
                     }
@@ -172,16 +171,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (language.langIsNew(getApplicationContext())) {
-            getWeatherData(searchLocation, language.currentLang);
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (language.langIsNew(getApplicationContext())) {
-            getWeatherData(searchLocation, language.currentLang);
+        if (searchLocation != null) {
+            getWeatherData(searchLocation, language.getCurrentLang(context));
         }
     }
 
