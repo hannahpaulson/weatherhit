@@ -1,108 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.hp.weatherhit.MainActivity">
 
-    <android.support.v7.widget.AppCompatEditText
-        android:id="@+id/user_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <Button
-        android:id="@+id/button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/user_input"
-        android:text="@string/search_location" />
-
-    <RelativeLayout
-        android:id="@+id/weather_info"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/button"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/temp_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="64dp"
-            tools:text="100" />
-
-        <ImageView
-            android:id="@+id/weather_image"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_toRightOf="@id/temp_text"
-            android:scaleType="fitCenter" />
-
-        <TextView
-            android:id="@+id/description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="6dp"
-            android:textSize="18dp"
-            android:layout_below="@id/weather_image"
-            android:layout_toRightOf="@id/temp_text"
-            tools:text="sCloudy"/>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_below="@id/description"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/temp_hi_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="6dp"
-                android:text="@string/day"
-                android:textSize="18dp"
-                tools:text="@string/day" />
-
-            <TextView
-                android:id="@+id/temp_hi_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="18dp"
-                tools:text="100" />
-
-            <TextView
-                android:id="@+id/temp_low_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="6dp"
-                android:text="@string/night"
-                android:textSize="18dp"
-                tools:text="@string/night" />
-
-            <TextView
-                android:id="@+id/temp_low_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="18dp"
-                tools:text="59" />
-
-        </LinearLayout>
-    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/weather_info"
-        android:layout_centerHorizontal="true">
+        android:layout_gravity="end">
 
         <TextView
             android:id="@+id/F_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="°F"
-            android:textSize="18dp"
+            android:textSize="18sp"
             tools:text="°F" />
 
         <Switch
@@ -115,7 +31,82 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="°C"
-            android:textSize="18dp" />
+            android:textSize="18sp" />
+
     </LinearLayout>
 
-</RelativeLayout>
+    <ImageView
+        android:id="@+id/weather_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/temp_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textSize="64sp"
+        tools:text="100" />
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="6dp"
+        android:textSize="18sp"
+        tools:text="sCloudy" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/temp_hi_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:text="@string/day"
+            android:textSize="18sp"
+            tools:text="@string/day" />
+
+        <TextView
+            android:id="@+id/temp_hi_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            tools:text="100" />
+
+        <TextView
+            android:id="@+id/temp_low_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:text="@string/night"
+            android:textSize="18sp"
+            tools:text="@string/night" />
+
+        <TextView
+            android:id="@+id/temp_low_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            tools:text="59" />
+    </LinearLayout>
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/user_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/user_input"
+        android:text="@string/search_location" />
+</LinearLayout>

@@ -1,7 +1,7 @@
 package com.hp.weatherhit;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,23 +15,15 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static com.hp.weatherhit.R.drawable.ic_wi_cloudy;
-import static java.time.LocalDateTime.*;
 
 public class MainActivity extends AppCompatActivity {
     APIClient.APIInterface apiInterface;
     WeatherData weatherData;
-    String unitType = "imperial";
-
+    String unitType = "imperial";s
     TextView temp;
     TextView temp_hi;
     TextView temp_low;
@@ -41,12 +33,14 @@ public class MainActivity extends AppCompatActivity {
     TextView night_label;
     ImageView weather_image;
     TextView desc;
+    Switch unit_switch;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         temp = findViewById(R.id.temp_text);
         temp_hi = findViewById(R.id.temp_hi_text);
         temp_low = findViewById(R.id.temp_low_text);
@@ -56,10 +50,9 @@ public class MainActivity extends AppCompatActivity {
         night_label = findViewById(R.id.temp_low_label);
         weather_image = findViewById(R.id.weather_image);
         desc = findViewById(R.id.description);
+        unit_switch = findViewById(R.id.unit_switch);
         day_label.setVisibility(View.GONE);
         night_label.setVisibility(View.GONE);
-
-        Switch unit_switch = findViewById(R.id.unit_switch);
 
         unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -93,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestForWeatherData(final String location) {
         apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
-        Call<WeatherData> call = apiInterface.getLocationWeather(location, "", unitType);
+        Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d");
         call.enqueue(new Callback<WeatherData>() {
             @Override
             public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
@@ -113,13 +106,14 @@ public class MainActivity extends AppCompatActivity {
         night_label.setVisibility(View.VISIBLE);
         weatherData = response.body();
 
-        String degreeType = getDegreeMeasurement();
-        temp.setText(trimDecimal(weatherData.getMain().getTemp().toString()) + degreeType);
-        temp_hi.setText(trimDecimal(weatherData.getMain().getTempMax().toString()) + degreeType);
-        temp_low.setText(trimDecimal(weatherData.getMain().getTempMin().toString()) + degreeType);
+        setDegreeMeasurement(weatherData.getMain().getTemp(),
+                weatherData.getMain().getTempMax(),
+                weatherData.getMain().getTempMin());
+
         desc.setText(weatherData.getWeather().get(0).getDescription());
         setImage(weatherData.getWeather().get(0).getMain(), weather_image);
     }
+
 
     private void setImage(String weatherData, ImageView weather_image) {
         switch (weatherData.toLowerCase()) {
@@ -135,20 +129,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getDegreeMeasurement() {
+    @SuppressLint("SetTextI18n")
+    private void setDegreeMeasurement(Double tempValue, Double tempMax, Double tempMin) {
         if (unitType == "imperial") {
-            return "°F";
+            temp.setText(kelvinToFahrenheit(tempValue) + "°F");
+            temp_hi.setText(kelvinToFahrenheit(tempMax) + "°F");
+            temp_low.setText(kelvinToFahrenheit(tempMin) + "°F");
         } else {
-            return "°C";
+            temp.setText(kelvinToCelsius(tempValue) + "°C");
+            temp_hi.setText(kelvinToCelsius(tempMax) + "°C");
+            temp_low.setText(kelvinToCelsius(tempMin) + "°C");
         }
     }
 
-    private String trimDecimal(String value) {
-        if (value.length() == 5) {
-            return value.substring(0, value.length() - 3);
-        } else {
-            return value.substring(0, value.length() - 2);
-        }
+    public static int kelvinToCelsius(double kelvinValue) {
+        return (int) (kelvinValue - 273.15);
+    }
+
+    public static int kelvinToFahrenheit(double kelvinValue) {
+        return (int) (((kelvinValue - 273) * 9 / 5) + 32);
     }
 }
 
