@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">WeatherHit</string>
     <string name="search_location">Type your location</string>
+    <string name="day">Day</string>
+    <string name="night">Night</string>
+
 </resources>
