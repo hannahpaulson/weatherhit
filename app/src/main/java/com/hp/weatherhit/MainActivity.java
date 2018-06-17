@@ -28,7 +28,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     APIClient.APIInterface apiInterface;
     WeatherData weatherData;
-    String unitType;
+    String unitType = "imperial";
     TextView temp;
     TextView temp_hi;
     TextView temp_low;
@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     ImageView weather_image;
     TextView desc;
     Switch unit_switch;
+    String currentLang = "en";
+    String searchLocation;
 
 
     @Override
@@ -62,12 +64,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
+        searchLocation = editText.getText().toString();
 
         unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     unitType = "metric";
-                    if (!editText.getText().toString().matches("")) {
+                    if (!searchLocation.matches("")) {
 
                         setDegreeMeasurement(weatherData.getMain().getTemp(),
                                 weatherData.getMain().getTempMax(),
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     unitType = "imperial";
-                    if (!editText.getText().toString().matches("")) {
+                    if (!searchLocation.matches("")) {
                         setDegreeMeasurement(weatherData.getMain().getTemp(),
                                 weatherData.getMain().getTempMax(),
                                 weatherData.getMain().getTempMin());
@@ -90,7 +93,8 @@ public class MainActivity extends AppCompatActivity {
                 if (editText.getText().toString().matches("")) {
                     Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
                 } else {
-                    requestForWeatherData(editText.getText().toString());
+                    searchLocation = editText.getText().toString();
+                    requestForWeatherData(searchLocation);
                 }
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
@@ -121,9 +125,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void requestForWeatherData(final String location) {
-        setUnitType();
         apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
-        Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d");
+        Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d", getLanguage());
         call.enqueue(new Callback<WeatherData>() {
             @Override
             public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
@@ -138,12 +141,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void getLanguage() {
-        SharedPreferences sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE);
-        unitType = sharedPreferences.getString("unit", null);
-        if (unitType == null) {
-            unitType = "metric";
+    private String getLanguage() {
+        SharedPreferences sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        currentLang = sharedPreferences.getString("lang", null);
+        if (currentLang.equals(null)) {
+            return "en";
         }
+        return currentLang;
     }
 
     private void displayWeatherData(Response<WeatherData> response) {
@@ -192,6 +196,16 @@ public class MainActivity extends AppCompatActivity {
 
     public static int kelvinToFahrenheit(double kelvinValue) {
         return (int) (((kelvinValue - 273) * 9 / 5) + 32);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        String prefLang = sharedPreferences.getString("lang", null);
+        if (!prefLang.equals(currentLang)) {
+            requestForWeatherData(searchLocation);
+        }
     }
 }
 
