@@ -20,15 +20,13 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-
 public class MainActivity extends AppCompatActivity {
-    APIClient.APIInterface apiInterface;
+
+    // TODO Private or public?
+    // TODO group by type (views, APIs,...)
     WeatherData weatherData;
     String unitType = "imperial";
+    Boolean isFreedomUnit = true;
     TextView temp;
     TextView temp_hi;
     TextView temp_low;
@@ -41,13 +39,78 @@ public class MainActivity extends AppCompatActivity {
     Switch unit_switch;
     String currentLang = "en";
     String searchLocation;
+    Toolbar myToolbar;
+    RequestWeatherData requestForWeatherData;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViews();
+        setLabelsVisibility(View.GONE);
+        setSupportActionBar(myToolbar);
 
+        unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                setSwitchUnitType(isChecked);
+            }
+        });
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchLocation = editText.getText().toString();
+                if (searchLocation.matches("")) {
+                    Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
+                } else {
+                    getWeatherData(searchLocation, getLanguage());
+                }
+                closeKeyboard();
+            }
+        });
+    }
+
+    private void getWeatherData(String searchLocation, String currentLang) {
+        requestForWeatherData.requestForWeatherData(searchLocation, currentLang,
+                new RetrofitCallback() {
+                    @Override
+                    public void onSuccess(WeatherData response) {
+                        displayWeatherData(response);
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("getWeatherData", error);
+                    }
+                });
+    }
+
+    private void closeKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+    }
+
+    private void setSwitchUnitType(boolean isChecked) {
+        boolean isSearchLocationEmpty = searchLocation.matches("");
+        if (isChecked) {
+            isFreedomUnit = false;
+        } else {
+            isFreedomUnit = true;
+        }
+        if (!isSearchLocationEmpty) {
+            setDegreeMeasurement(weatherData.getMain().getTemp(),
+                    weatherData.getMain().getTempMax(),
+                    weatherData.getMain().getTempMin());
+        }
+    }
+
+    private void setLabelsVisibility(int gone) {
+        day_label.setVisibility(gone);
+        night_label.setVisibility(gone);
+    }
+
+    private void findViews() {
         temp = findViewById(R.id.temp_text);
         temp_hi = findViewById(R.id.temp_hi_text);
         temp_low = findViewById(R.id.temp_low_text);
@@ -58,48 +121,7 @@ public class MainActivity extends AppCompatActivity {
         weather_image = findViewById(R.id.weather_image);
         desc = findViewById(R.id.description);
         unit_switch = findViewById(R.id.unit_switch);
-        day_label.setVisibility(View.GONE);
-        night_label.setVisibility(View.GONE);
-
-        Toolbar myToolbar = findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
-
-        searchLocation = editText.getText().toString();
-
-        unit_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    unitType = "metric";
-                    if (!searchLocation.matches("")) {
-
-                        setDegreeMeasurement(weatherData.getMain().getTemp(),
-                                weatherData.getMain().getTempMax(),
-                                weatherData.getMain().getTempMin());
-                    }
-                } else {
-                    unitType = "imperial";
-                    if (!searchLocation.matches("")) {
-                        setDegreeMeasurement(weatherData.getMain().getTemp(),
-                                weatherData.getMain().getTempMax(),
-                                weatherData.getMain().getTempMin());
-                    }
-                }
-            }
-        });
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (editText.getText().toString().matches("")) {
-                    Toast.makeText(getApplicationContext(), "Pls Type a location", Toast.LENGTH_SHORT).show();
-                } else {
-                    searchLocation = editText.getText().toString();
-                    requestForWeatherData(searchLocation);
-                }
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-            }
-        });
+        myToolbar = findViewById(R.id.my_toolbar);
     }
 
     @Override
@@ -116,31 +138,13 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
-
             default:
                 return super.onOptionsItemSelected(item);
 
         }
     }
 
-
-    private void requestForWeatherData(final String location) {
-        apiInterface = APIClient.getClient().create(APIClient.APIInterface.class);
-        Call<WeatherData> call = apiInterface.getLocationWeather(location, "96d06b04ae1e61a7d850e288a8f16b2d", getLanguage());
-        call.enqueue(new Callback<WeatherData>() {
-            @Override
-            public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
-                displayWeatherData(response);
-            }
-
-            @Override
-            public void onFailure(Call<WeatherData> call, Throwable t) {
-                call.cancel();
-                Log.e("RequestWeatherData", "Couldn't make the call");
-            }
-        });
-    }
-
+    // TODO Is language somthing that this activity should own?
     private String getLanguage() {
         SharedPreferences sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
         currentLang = sharedPreferences.getString("lang", null);
@@ -150,10 +154,8 @@ public class MainActivity extends AppCompatActivity {
         return currentLang;
     }
 
-    private void displayWeatherData(Response<WeatherData> response) {
-        day_label.setVisibility(View.VISIBLE);
-        night_label.setVisibility(View.VISIBLE);
-        weatherData = response.body();
+    private void displayWeatherData(WeatherData weatherData) {
+        setLabelsVisibility(View.VISIBLE);
 
         setDegreeMeasurement(weatherData.getMain().getTemp(),
                 weatherData.getMain().getTempMax(),
@@ -179,6 +181,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setDegreeMeasurement(Double tempValue, Double tempMax, Double tempMin) {
+        // TODO Unit type should be injected, also, it shouldn't be a string (what if I pass a string that says "Imperial"?)
+        // If you map it to boolean it would make more sense, but then you'll have to sort this: https://medium.com/@amlcurran/clean-code-the-curse-of-a-boolean-parameter-c237a830b7a3
         if (unitType == "imperial") {
             temp.setText(kelvinToFahrenheit(tempValue) + "°F");
             temp_hi.setText(kelvinToFahrenheit(tempMax) + "°F");
@@ -190,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // TODO is this what the activity shold be doing?
     public static int kelvinToCelsius(double kelvinValue) {
         return (int) (kelvinValue - 273.15);
     }
@@ -204,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
         String prefLang = sharedPreferences.getString("lang", null);
         if (!prefLang.equals(currentLang)) {
-            requestForWeatherData(searchLocation);
+            getWeatherData(searchLocation, getLanguage());
         }
     }
 }
